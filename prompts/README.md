@@ -1,6 +1,7 @@
 # Search ESCI
 
-Search ESCI [https://huggingface.co/datasets/J-MADRAL/SearchESCI](https://huggingface.co/datasets/J-MADRAL/SearchESCI) is a novel synthetic large-scale test collection for retrieval search. It comprises a corpus of 22.1M reviews and a LLM-generated set of 75k, 12.5k, and 12.5k queries in the training, validation, and test sets, respectively. A single positive review is associated with each query, similarly to MS-MARCO dataset.
+[Search ESCI](https://huggingface.co/datasets/J-MADRAL/SearchESCI) is a novel synthetic large-scale test collection for retrieval search. It comprises a corpus of 22.1M reviews and a LLM-generated set of 75k, 12.5k, and 12.5k queries in the training, validation, and test sets, respectively. A single positive review is associated with each query, similarly to MS-MARCO dataset.
+
 
 ## Generation Settings ##
 
@@ -8,6 +9,7 @@ We employed [Qwen 3.5 9B](https://huggingface.co/Qwen/Qwen3.5-9B) open-source la
 - `all default generation settings`
 * `max_new_tokens`: 1000
 * `thinking`: disabled (to significantly reduce runtime, with little to no quality degradation)
+
 
 ## Prompt Used ##
 
@@ -17,10 +19,7 @@ We employed [Qwen 3.5 9B](https://huggingface.co/Qwen/Qwen3.5-9B) open-source la
     "content": "You are a synthetic dataset generator. "
                "Your task is to read a product review and generate one question-answer pair that a curious, "
                "research-oriented user might ask when exploring a product category."
-}
-```
-
-```
+},
 {
     "role": "user",
     "content": "Return only valid JSON in this exact format, with no preamble: "
@@ -113,13 +112,23 @@ We employed [Qwen 3.5 9B](https://huggingface.co/Qwen/Qwen3.5-9B) open-source la
         }
 ```
 
-## Rule-based Filtering
 
-We discarded any generated query containing any of the strings belonging to the following categories:
+## Rule-based Filtering ##
+
+We discarded any generated query that contains any of the strings belonging to the following categories:
 
 - `shopping-related`:
     * `deliver`, `packag`, `product`, `purchas`, `review`, `shipping`, `warrant`, `user`
 - `stopwords`:
-    * `mention`, `these`, `this`
+    * `mention`, `that`, `these`, `this`, `those`
 - `common generic words`:
     * `the book`, `the movie`, `the novel`
+
+
+## Examples of Training Queries ##
+
+- `bench drill press motor pover`
+- `human hair wig built-in combs`
+- `protein carb ratio snack preparation`
+- `removable handle oven safe`
+- `s-video to antenna input conversion compability`
