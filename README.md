@@ -17,8 +17,7 @@ All the datasets used and every model trained in this work is available through 
     - `TREC Product Search 2023`: [https://huggingface.co/datasets/J-MADRAL/TREC_Product_Search_2023](https://huggingface.co/datasets/J-MADRAL/TREC_Product_Search_2023)
 
 
-* `Training Data`
-    - `AAA`: AAA
+* `Data Required for Training`: [https://huggingface.co/datasets/J-MADRAL/TrainingData](https://huggingface.co/datasets/J-MADRAL/TrainingData)
 
 
 * `Models`
@@ -39,7 +38,7 @@ It is possible to retrain the models from scratch using the provided scripts in 
 
 ## Python Virtual Environment ###
 
-To create the Python virtual environment required to execute the code, refer to `environment.yaml` file 
+To create the Python virtual environment required to execute the code, refer to the `environment.yaml` file 
 provided in this repository. For reference, these are the main packages required by the code:
 
 ```
