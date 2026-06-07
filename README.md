@@ -36,6 +36,13 @@ It is possible to retrain the models from scratch using the provided scripts in 
 **Note**: Make sure to set the paths to the required input files at the start of the scripts.
 
 
+## Indexing and Retrieval ##
+
+Use the scripts `index_and_retrieve_<J/P/R>.sh` found in the `scripts` folder to index the corpus and perform retrieval.
+
+**Note**: Make sure to set the paths to the required input files at the start of the scripts.
+
+
 ## Python Virtual Environment ###
 
 To create the Python virtual environment required to execute the code, refer to the `environment.yaml` file 
