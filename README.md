@@ -9,7 +9,7 @@ short paper currently under review at ACM CIKM '26 conference.
 
 ## Datasets and Models ##
 
-All the datasets used and every model trained in this work is available through Huggingface:
+All the datasets used and every model trained in this work are available through Huggingface:
 
 * `Datasets`
     - `Amazon ESCI`: [https://huggingface.co/datasets/J-MADRAL/AmazonESCI](https://huggingface.co/datasets/J-MADRAL/AmazonESCI)

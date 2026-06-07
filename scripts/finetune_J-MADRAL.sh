@@ -4,12 +4,12 @@ set -e
 # --------------------------------------------------------------------------------
 # ------------ Set the following parameters with the correct values. -------------
 # --------------------------------------------------------------------------------
-PRETRAIN_MODEL_OUTPUT_FOLDER="/path/to/root_folder/models/pretrain_J-MADRAL"
-FINETUNE_MODEL_OUTPUT_FOLDER="/path/to/root_folder/models/finetune_J-MADRAL"
-P_CORPUS_FILENAME="/path/to/AmazonESCI_dataset/catalogue.jsonl"
-R_CORPUS_FILENAME="/path/to/SearchESCI_dataset/corpus.jsonl"
-P_QUERIES_FILENAME="/path/to/AmazonESCI_dataset/train_queries.jsonl"
-R_QUERIES_FILENAME="/path/to/SearchESCI_dataset/train_queries.jsonl"
+PRETRAINED_MODEL_OUTPUT_FOLDER="/path/to/root_folder/models/pretrain_J-MADRAL"
+FINETUNED_MODEL_OUTPUT_FOLDER="/path/to/root_folder/models/finetune_J-MADRAL"
+P_CORPUS_FILENAME="/path/to/dataset/AmazonESCI/catalogue.jsonl"
+R_CORPUS_FILENAME="/path/to/dataset/SearchESCI/corpus.jsonl"
+P_QUERIES_FILENAME="/path/to/dataset/AmazonESCI/train_queries.jsonl"
+R_QUERIES_FILENAME="/path/to/dataset/SearchESCI/train_queries.jsonl"
 P_TRAIN_FILENAME="/path/to/train-data_dataset/p_train_data.jsonl"
 R_TRAIN_FILENAME="/path/to/train-data_dataset/r_train_data.jsonl"
 
@@ -26,10 +26,10 @@ FINETUNE_ALPHA=0.05
 TASK="joint"
 NUM_NEGATIVES=7
 
-LOSS_LOGGING_FILENAME="${FINETUNE_MODEL_OUTPUT_FOLDER}/loss_logging.tsv"
-Q_MODEL_OUTPUT_FOLDER="${FINETUNE_MODEL_OUTPUT_FOLDER}/q_model"
-D_MODEL_OUTPUT_FOLDER="${FINETUNE_MODEL_OUTPUT_FOLDER}/d_model"
-T_MODEL_OUTPUT_FOLDER="${FINETUNE_MODEL_OUTPUT_FOLDER}/train_model"
+LOSS_LOGGING_FILENAME="${FINETUNED_MODEL_OUTPUT_FOLDER}/loss_logging.tsv"
+Q_MODEL_OUTPUT_FOLDER="${FINETUNED_MODEL_OUTPUT_FOLDER}/q_model"
+D_MODEL_OUTPUT_FOLDER="${FINETUNED_MODEL_OUTPUT_FOLDER}/d_model"
+T_MODEL_OUTPUT_FOLDER="${FINETUNED_MODEL_OUTPUT_FOLDER}/train_model"
 
 # --------------------------------------------------------------------------------
 # ----------------------- Check if the input files exists. -----------------------
@@ -58,28 +58,52 @@ if [[ ! -f "${R_TRAIN_FILENAME}" ]]; then
   echo "Training R train data input file not found: ${R_TRAIN_FILENAME}"
   exit 1
 fi
+if [[ ! -d "${PRETRAINED_MODEL_OUTPUT_FOLDER}" ]]; then
+  echo "Pre-trained model input folder not found: ${PRETRAINED_MODEL_OUTPUT_FOLDER}"
+  exit 1
+fi
+if [[ ! -f "${PRETRAINED_MODEL_OUTPUT_FOLDER}/config.json" ]]; then
+  echo "Pre-trained model input files inside the folder not found: ${PRETRAINED_MODEL_OUTPUT_FOLDER}"
+  exit 1
+fi
 
 # --------------------------------------------------------------------------------
 # ------------------- Create the output folders, if necessary. -------------------
 # --------------------------------------------------------------------------------
-if [[ ! -d "${FINETUNE_MODEL_OUTPUT_FOLDER}" ]]; then
-  mkdir "${FINETUNE_MODEL_OUTPUT_FOLDER}";
+if [[ ! -d "${FINETUNED_MODEL_OUTPUT_FOLDER}" ]]; then
+  mkdir "${FINETUNED_MODEL_OUTPUT_FOLDER}";
+fi
+if [[ ! -d "${FINETUNED_MODEL_OUTPUT_FOLDER}" ]]; then
+  echo "Unable to create the output model folder: ${FINETUNED_MODEL_OUTPUT_FOLDER}"
+  exit 1
 fi
 if [[ ! -d "${Q_MODEL_OUTPUT_FOLDER}" ]]; then
   mkdir "${Q_MODEL_OUTPUT_FOLDER}";
 fi
+if [[ ! -d "${Q_MODEL_OUTPUT_FOLDER}" ]]; then
+  echo "Unable to create the output query model folder: ${Q_MODEL_OUTPUT_FOLDER}"
+  exit 1
+fi
 if [[ ! -d "${D_MODEL_OUTPUT_FOLDER}" ]]; then
   mkdir "${D_MODEL_OUTPUT_FOLDER}";
 fi
+if [[ ! -d "${D_MODEL_OUTPUT_FOLDER}" ]]; then
+  echo "Unable to create the output document model folder: ${D_MODEL_OUTPUT_FOLDER}"
+  exit 1
+fi
 if [[ ! -d "${T_MODEL_OUTPUT_FOLDER}" ]]; then
   mkdir "${T_MODEL_OUTPUT_FOLDER}";
+fi
+if [[ ! -d "${T_MODEL_OUTPUT_FOLDER}" ]]; then
+  echo "Unable to create the output train model folder: ${T_MODEL_OUTPUT_FOLDER}"
+  exit 1
 fi
 
 # --------------------------------------------------------------------------------
 # ------------------------------ Training execution. -----------------------------
 # --------------------------------------------------------------------------------
 python "../src/training/finetune.py" \
-  --base_model="${PRETRAIN_MODEL_OUTPUT_FOLDER}" \
+  --base_model="${PRETRAINED_MODEL_OUTPUT_FOLDER}" \
   --query_model_folder="${Q_MODEL_OUTPUT_FOLDER}" \
   --document_model_folder="${D_MODEL_OUTPUT_FOLDER}" \
   --train_model_folder="${T_MODEL_OUTPUT_FOLDER}" \
