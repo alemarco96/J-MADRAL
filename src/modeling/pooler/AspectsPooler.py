@@ -7,7 +7,6 @@ from modeling.madral.ImportanceWeightingAFN import ImportanceWeightingAFN
 from modeling.madral.MadralAEN import MadralAEN
 from modeling.madral.MtBertAEN import MtBertAEN
 from modeling.madral.PresenceWeightingAFN import PresenceWeightingAFN
-from modeling.madral.PresenceWeightingNormalizedAFN import PresenceWeightingNormalizedAFN
 from modeling.madral.WeightedSumAFN import WeightedSumAFN
 import torch.nn
 
@@ -31,8 +30,6 @@ class AspectsPooler(PoolerModule):
             self.afn = ImportanceWeightingAFN(config.hidden_size, config.num_aspects + 1)
         elif config.afn_module == "PresenceWeightingAFN":
             self.afn = PresenceWeightingAFN(config.hidden_size, config.num_aspects + 1)
-        elif config.afn_module == "PresenceWeightingNormalizedAFN":
-            self.afn = PresenceWeightingNormalizedAFN(config.hidden_size, config.num_aspects + 1)
         elif config.afn_module == "WeightedSumAFN":
             self.afn = WeightedSumAFN(config.hidden_size, config.num_aspects + 1)
         else:

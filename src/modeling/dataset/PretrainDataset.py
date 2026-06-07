@@ -7,7 +7,7 @@ import transformers
 import typing
 
 
-class MultiPretrainDataset(datasets.Dataset, transformers.TrainerCallback):
+class PretrainDataset(datasets.Dataset, transformers.TrainerCallback):
     # noinspection PyMissingConstructor
     def __init__(self,
                  corpora_data: list[dict[int | str, dict[str, str | list[int]]]],

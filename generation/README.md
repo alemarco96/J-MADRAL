@@ -3,12 +3,21 @@
 [Search ESCI](https://huggingface.co/datasets/J-MADRAL/SearchESCI) is a novel synthetic large-scale test collection for retrieval search. It comprises a corpus of 22.1M reviews and a LLM-generated set of 75k, 12.5k, and 12.5k queries in the training, validation, and test sets, respectively. A single positive review is associated with each query, similarly to MS-MARCO dataset.
 
 
+## Examples of Training Queries ##
+
+- `bench drill press motor pover`
+- `human hair wig built-in combs`
+- `protein carb ratio snack preparation`
+- `removable handle oven safe`
+- `s-video to antenna input conversion compability`
+
+
 ## Generation Settings ##
 
 We employed [Qwen 3.5 9B](https://huggingface.co/Qwen/Qwen3.5-9B) open-source large language model to generate the set of queries, using the following settings:
 - `all default generation settings`
-* `max_new_tokens`: 1000
-* `thinking`: disabled (to significantly reduce runtime, with little to no quality degradation)
+- `max_new_tokens`: 1000
+- `thinking`: disabled (to significantly reduce runtime, with little to no quality degradation)
 
 
 ## Prompt Used ##
@@ -109,7 +118,7 @@ We employed [Qwen 3.5 9B](https://huggingface.co/Qwen/Qwen3.5-9B) open-source la
                "         ↳ brand and product line anchor to one specific SKU\n"
                "BETTER → \"cheddar popcorn seasoning main ingredients\"\n"
                "         ↳ brand removed, still fully answerable from the review\n"
-        }
+}
 ```
 
 
@@ -123,12 +132,3 @@ We discarded any generated query that contains any of the strings belonging to t
     * `mention`, `that`, `these`, `this`, `those`
 - `common generic words`:
     * `the book`, `the movie`, `the novel`
-
-
-## Examples of Training Queries ##
-
-- `bench drill press motor pover`
-- `human hair wig built-in combs`
-- `protein carb ratio snack preparation`
-- `removable handle oven safe`
-- `s-video to antenna input conversion compability`

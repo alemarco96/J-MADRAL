@@ -1,34 +1,33 @@
 from modeling.generic.MLMHeadModule import MLMHeadModule
-from modeling.generic.TrainDoubleOutput import TrainDoubleOutput
+from modeling.generic.TrainDoubleOutput import TrainOutput
 from modeling.loss.APLoss import APLoss
-from modeling.loss.APPLoss import APPLoss
 from modeling.loss.MLMLoss import MLMLoss
-from modeling.model.TrainDoubleBiEncoderModel import TrainDoubleBiEncoderModel
+from modeling.model.TrainBiEncoderModel import TrainBiEncoderModel
 import torch.nn
 import transformers
-from typing import Any
+import typing
 
 
-class MadralPretrainingTrainer(transformers.Trainer):
+class PretrainingTrainer(transformers.Trainer):
     def __init__(self, *args, pretrain_alpha: float, logging_filename: str, **kwargs):
-        super(MadralPretrainingTrainer, self).__init__(*args, **kwargs)
+        super(PretrainingTrainer, self).__init__(*args, **kwargs)
         self.pretrain_alpha = pretrain_alpha
 
         self.logging_filename = logging_filename
         self.tot_steps = 0
         self.curr_steps = 0
-        self.curr_losses = [0.0, 0.0, 0.0]  #, 0.0]
+        self.curr_losses = [0.0, 0.0, 0.0]
 
         # Write the header to the logging file.
-        with open(self.logging_filename, "wt", encoding="utf-8") as fo:
-            # print("Steps\tMLM\tAP\tAPP\tLoss", file=fo, flush=True)
-            print("Steps\tMLM\tAP\tLoss", file=fo, flush=True)
-        del fo
+        if self.logging_filename is not None:
+            with open(self.logging_filename, "wt", encoding="utf-8") as fo:
+                print("Steps\tMLM\tAP\tLoss", file=fo, flush=True)
+            del fo
 
     def compute_loss(
         self,
         model: torch.nn.Module,
-        inputs: dict[str, torch.Tensor | Any],
+        inputs: dict[str, torch.Tensor | typing.Any],
         return_outputs: bool = False,
         num_items_in_batch: torch.Tensor | None = None,
     ):
@@ -36,7 +35,7 @@ class MadralPretrainingTrainer(transformers.Trainer):
         aspects_labels = inputs["aspects_labels"]
 
         # Compute the model output on the given input data.
-        assert isinstance(model, TrainDoubleBiEncoderModel)
+        assert isinstance(model, TrainBiEncoderModel)
         assert isinstance(model.d_mlm_head, MLMHeadModule)
         if model.aspects_linear is not None:
             assert isinstance(model.aspects_linear, torch.nn.ModuleList)
@@ -51,7 +50,7 @@ class MadralPretrainingTrainer(transformers.Trainer):
                                        output_hidden_states=False,
                                        output_logits=True,
                                        return_dict=True)
-        assert isinstance(encoder_output, TrainDoubleOutput)
+        assert isinstance(encoder_output, TrainOutput)
 
         # ** We need to compute the MLM and AP logits here! **
         # Use the MLM head to perform prediction.
@@ -67,17 +66,11 @@ class MadralPretrainingTrainer(transformers.Trainer):
             ap_loss = APLoss.forward(encoder_output.d_output.aspects_logits, aspects_labels)
         else:
             ap_loss = torch.zeros([], dtype=torch.float32, device=encoder_output.d_output.last_hidden_state.device)
-        # if encoder_output.d_output.presence_logits is not None and aspects_labels is not None:
-        #     app_loss = APPLoss.forward(encoder_output.d_output.presence_logits, aspects_labels)
-        # else:
-        #     app_loss = torch.zeros([], dtype=torch.float32, device=encoder_output.d_output.last_hidden_state.device)
 
-        # loss = mlm_loss + self.pretrain_alpha * (ap_loss + app_loss)
         loss = mlm_loss + self.pretrain_alpha * ap_loss
 
         self.curr_losses = [v1 + v2 for v1, v2 in zip(self.curr_losses, [float(torch.sum(mlm_loss.detach())),
                                                                          float(torch.sum(ap_loss.detach())),
-                                                                         # float(torch.sum(app_loss.detach())),
                                                                          float(torch.sum(loss.detach()))])]
 
         self.curr_steps += 1
@@ -91,6 +84,6 @@ class MadralPretrainingTrainer(transformers.Trainer):
             del fo
 
             self.curr_steps = 0
-            self.curr_losses = [0.0, 0.0, 0.0]  #, 0.0]
+            self.curr_losses = [0.0, 0.0, 0.0]
 
         return loss

@@ -3,7 +3,7 @@ import transformers
 from typing import Any
 
 
-class JointPretrainingCollator(transformers.DataCollator):
+class PretrainingCollator(transformers.DataCollator):
     def __init__(self,
                  tokenizer: transformers.PreTrainedTokenizerBase,
                  max_num_tokens: int | None = None,

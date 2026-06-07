@@ -1,4 +1,2 @@
 from .BiEncoderModel import BiEncoderModel
-from .CrossEncoderModel import CrossEncoderModel
-from .TrainCrossEncoderModel import TrainCrossEncoderModel
-from .TrainDoubleBiEncoderModel import TrainDoubleBiEncoderModel
+from .TrainBiEncoderModel import TrainBiEncoderModel

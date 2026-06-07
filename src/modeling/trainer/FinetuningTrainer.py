@@ -1,37 +1,37 @@
-from modeling.generic.TrainDoubleOutput import TrainDoubleOutput
+from modeling.generic.TrainDoubleOutput import TrainOutput
 from modeling.loss.APLoss import APLoss
-from modeling.loss.LSEPairLoss import LSEPairLoss
-from modeling.model.TrainDoubleBiEncoderModel import TrainDoubleBiEncoderModel
+from modeling.loss.CELoss import CELoss
+from modeling.model.TrainBiEncoderModel import TrainBiEncoderModel
 import torch.nn
 import transformers
-from typing import Any
+import typing
 
 
 class FinetuningTrainer(transformers.Trainer):
-    def __init__(self, *args, finetune_alpha: float, temperature: float, logging_filename: str, **kwargs):
+    def __init__(self, *args, finetune_alpha: float, logging_filename: str, **kwargs):
         super(FinetuningTrainer, self).__init__(*args, **kwargs)
         self.finetune_alpha = finetune_alpha
-        self.temperature = temperature
 
         self.logging_filename = logging_filename
         self.tot_steps = 0
         self.curr_steps = 0
-        self.curr_losses = [0.0, 0.0, 0.0, 0.0]  #, 0.0, 0.0]
+        self.curr_losses = [0.0, 0.0, 0.0, 0.0]
 
         # Write the header to the logging file.
-        with open(self.logging_filename, "wt", encoding="utf-8") as fo:
-            print("Steps\tLSE-Pair\tq-AP\td-AP\tLoss", file=fo, flush=True)
-        del fo
+        if self.logging_filename is not None:
+            with open(self.logging_filename, "wt", encoding="utf-8") as fo:
+                print("Steps\tCE\tq-AP\td-AP\tLoss", file=fo, flush=True)
+            del fo
 
     def compute_loss(
         self,
         model: torch.nn.Module,
-        inputs: dict[str, torch.Tensor | Any],
+        inputs: dict[str, torch.Tensor | typing.Any],
         return_outputs: bool = False,
         num_items_in_batch: torch.Tensor | None = None,
     ):
         # Compute the model output on the given input data.
-        assert isinstance(model, TrainDoubleBiEncoderModel)
+        assert isinstance(model, TrainBiEncoderModel)
         if model.aspects_linear is not None:
             assert isinstance(model.aspects_linear, torch.nn.ModuleList)
 
@@ -45,7 +45,10 @@ class FinetuningTrainer(transformers.Trainer):
                                        output_hidden_states=False,
                                        output_logits=True,
                                        return_dict=True)
-        assert isinstance(encoder_output, TrainDoubleOutput)
+        assert isinstance(encoder_output, TrainOutput)
+
+        # Compute the CE loss.
+        ce_loss = CELoss.forward(encoder_output.q_output.pooler_output, encoder_output.d_output.pooler_output)
 
         # Extract the aspects labels for both queries and documents.
         q_aspects_labels = inputs.get("q_aspects_labels", None)
@@ -60,51 +63,38 @@ class FinetuningTrainer(transformers.Trainer):
             encoder_output.d_output.aspects_logits = tuple(model.aspects_linear[i](
                 encoder_output.d_output.aspects_embedding[:, i]) for i in range(d_aspects_labels.shape[1]))
 
-        # Compute the LSEPair loss.
-        ce_loss = LSEPairLoss.forward(q_embedding=encoder_output.q_output.pooler_output,
-                                      d_embedding=encoder_output.d_output.pooler_output,
-                                      labels=inputs["qd_relevance_labels"],
-                                      temperature=self.temperature)
-        #ce_loss = CELoss.forward(encoder_output.q_output.pooler_output, encoder_output.d_output.pooler_output)
-
         if encoder_output.q_output.aspects_logits is not None and q_aspects_labels is not None:
             q_ap_loss = APLoss.forward(encoder_output.q_output.aspects_logits, q_aspects_labels)
         else:
-            q_ap_loss = torch.zeros([], dtype=torch.float32, device=encoder_output.q_output.pooler_output.device)
+            q_ap_loss = torch.zeros([], dtype=torch.float32, device=encoder_output.d_output.pooler_output.device)
         if encoder_output.d_output.aspects_logits is not None and d_aspects_labels is not None:
             d_ap_loss = APLoss.forward(encoder_output.d_output.aspects_logits, d_aspects_labels)
         else:
             d_ap_loss = torch.zeros([], dtype=torch.float32, device=encoder_output.d_output.pooler_output.device)
 
-        # if encoder_output.q_output.presence_logits is not None and q_aspects_labels is not None:
-        #     q_app_loss = APPLoss.forward(encoder_output.q_output.presence_logits, q_aspects_labels)
-        # else:
-        #     q_app_loss = torch.zeros([], dtype=torch.float32, device=encoder_output.q_output.pooler_output.device)
-        # if encoder_output.d_output.presence_logits is not None and d_aspects_labels is not None:
-        #     d_app_loss = APPLoss.forward(encoder_output.d_output.presence_logits, d_aspects_labels)
-        # else:
-        #     d_app_loss = torch.zeros([], dtype=torch.float32, device=encoder_output.d_output.pooler_output.device)
-
-        loss = ce_loss + self.finetune_alpha * (q_ap_loss + d_ap_loss)
+        # Add AP loss to the CE loss, using self.finetune_alpha as scaling factor.
+        if self.finetune_alpha != 0.0:
+            loss = ce_loss + self.finetune_alpha * (q_ap_loss + d_ap_loss)
+        else:
+            loss = ce_loss
 
         self.curr_losses = [v1 + v2 for v1, v2 in zip(self.curr_losses, [float(torch.sum(ce_loss.detach())),
                                                                          float(torch.sum(q_ap_loss.detach())),
                                                                          float(torch.sum(d_ap_loss.detach())),
-                                                                         # float(torch.sum(q_app_loss.detach())),
-                                                                         # float(torch.sum(d_app_loss.detach())),
                                                                          float(torch.sum(loss.detach()))])]
 
         self.curr_steps += 1
         if self.curr_steps >= 1000:
             self.tot_steps += self.curr_steps
 
-            with open(self.logging_filename, "at", encoding="utf-8") as fo:
-                str_losses = "\t".join([f"{v / self.curr_steps:.6f}" for v in self.curr_losses])
-                print(f"{self.tot_steps}\t{str_losses}", file=fo, flush=True)
-                del str_losses
-            del fo
+            if self.logging_filename is not None:
+                with open(self.logging_filename, "at", encoding="utf-8") as fo:
+                    str_losses = "\t".join([f"{v / self.curr_steps:.6f}" for v in self.curr_losses])
+                    print(f"{self.tot_steps}\t{str_losses}", file=fo, flush=True)
+                    del str_losses
+                del fo
 
             self.curr_steps = 0
-            self.curr_losses = [0.0, 0.0, 0.0, 0.0]  #, 0.0, 0.0]
+            self.curr_losses = [0.0, 0.0, 0.0, 0.0]
 
         return loss

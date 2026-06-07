@@ -1,6 +1,6 @@
-from modeling.config.TrainDoubleBiEncoderConfig import TrainDoubleBiEncoderConfig
+from modeling.config.TrainBiEncoderConfig import TrainBiEncoderConfig
 from modeling.generic.ModelOutput import ModelOutput
-from modeling.generic.TrainDoubleOutput import TrainDoubleOutput
+from modeling.generic.TrainDoubleOutput import TrainOutput
 from modeling.mlm_head.BertMLMHead import BertMLMHead
 from modeling.mlm_head.ModernBertMLMHead import ModernBertMLMHead
 from modeling.model.BiEncoderModel import BiEncoderModel
@@ -10,11 +10,11 @@ import transformers
 from typing import Callable
 
 
-class TrainDoubleBiEncoderModel(transformers.PreTrainedModel):
-    config_class = TrainDoubleBiEncoderConfig
+class TrainBiEncoderModel(transformers.PreTrainedModel):
+    config_class = TrainBiEncoderConfig
 
     def __init__(self, config):
-        super(TrainDoubleBiEncoderModel, self).__init__(config)
+        super(TrainBiEncoderModel, self).__init__(config)
 
         if config.q_config.hidden_size != config.d_config.hidden_size:
             raise ValueError(f"Invalid embedding size: found {config.q_config.hidden_size} "
@@ -223,7 +223,7 @@ class TrainDoubleBiEncoderModel(transformers.PreTrainedModel):
                 output_hidden_states: bool | None = None,
                 output_logits: bool | None = None,
                 return_dict: bool | None = None,
-                **kwargs) -> TrainDoubleOutput | tuple[ModelOutput, ModelOutput]:
+                **kwargs) -> TrainOutput | tuple[ModelOutput, ModelOutput]:
         if q_input_ids is not None and q_attention_mask is not None:
             # Verify that the shape of the input parameters matches.
             assert q_input_ids.shape == q_attention_mask.shape
@@ -261,7 +261,7 @@ class TrainDoubleBiEncoderModel(transformers.PreTrainedModel):
 
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
         if return_dict:
-            return TrainDoubleOutput(q_output=q_output, d_output=d_output)
+            return TrainOutput(q_output=q_output, d_output=d_output)
         else:
             return q_output, d_output
 

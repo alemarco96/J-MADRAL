@@ -8,30 +8,6 @@ import time
 
 def parse_args() -> argparse.Namespace:
     args = argparse.ArgumentParser()
-    args.add_argument("--r_corpus_filename",
-                      dest="r_corpus_filename",
-                      type=str,
-                      required=True)
-    args.add_argument("--s_corpus_filename",
-                      dest="s_corpus_filename",
-                      type=str,
-                      required=True)
-    args.add_argument("--r_train_filename",
-                      dest="r_train_filename",
-                      type=str,
-                      required=True)
-    args.add_argument("--s_train_filename",
-                      dest="s_train_filename",
-                      type=str,
-                      required=True)
-    args.add_argument("--rs_train_filename",
-                      dest="rs_train_filename",
-                      type=str,
-                      required=True)
-    args.add_argument("--sr_train_filename",
-                      dest="sr_train_filename",
-                      type=str,
-                      required=True)
     args.add_argument("--base_model",
                       dest="base_model",
                       type=str,
@@ -41,40 +17,74 @@ def parse_args() -> argparse.Namespace:
                       type=str,
                       default="cuda",
                       required=False)
-    args.add_argument("--finetune_alpha",
-                      dest="finetune_alpha",
-                      type=float,
-                      default=0.0,
+    args.add_argument("--query_model_folder",
+                      dest="query_model_folder",
+                      type=str,
+                      default=None,
                       required=False)
-    args.add_argument("--auxiliary_alpha",
-                      dest="auxiliary_alpha",
-                      type=float,
-                      default=0.0,
+    args.add_argument("--document_model_folder",
+                      dest="document_model_folder",
+                      type=str,
+                      default=None,
+                      required=False)
+    args.add_argument("--train_model_folder",
+                      dest="train_model_folder",
+                      type=str,
+                      default=None,
+                      required=False)
+    args.add_argument("--loss_logging_filename",
+                      dest="loss_logging_filename",
+                      type=str,
+                      default=None,
+                      required=False)
+    args.add_argument("--p_corpus_filename",
+                      dest="p_corpus_filename",
+                      type=str,
+                      required=True)
+    args.add_argument("--r_corpus_filename",
+                      dest="r_corpus_filename",
+                      type=str,
+                      required=True)
+    args.add_argument("--p_queries_filename",
+                      dest="p_queries_filename",
+                      type=str,
+                      required=True)
+    args.add_argument("--r_queries_filename",
+                      dest="r_queries_filename",
+                      type=str,
+                      required=True)
+    args.add_argument("--p_train_filename",
+                      dest="p_train_filename",
+                      type=str,
+                      required=True)
+    args.add_argument("--r_train_filename",
+                      dest="r_train_filename",
+                      type=str,
+                      required=True)
+    args.add_argument("--num_train_epochs",
+                      dest="num_train_epochs",
+                      type=int,
+                      default=20,
                       required=False)
     args.add_argument("--learning_rate",
                       dest="learning_rate",
                       type=float,
                       default=5e-5,
                       required=False)
-    args.add_argument("--num_train_epochs",
-                      dest="num_train_epochs",
-                      type=int,
-                      default=20,
-                      required=False)
     args.add_argument("--batch_size",
                       dest="batch_size",
                       type=int,
                       default=64,
                       required=False)
-    args.add_argument("--gradient_accumulation_steps",
-                      dest="gradient_accumulation_steps",
-                      type=int,
-                      default=1,
-                      required=False)
     args.add_argument("--max_num_tokens",
                       dest="max_num_tokens",
                       type=int,
                       default=None,
+                      required=False)
+    args.add_argument("--gradient_accumulation_steps",
+                      dest="gradient_accumulation_steps",
+                      type=int,
+                      default=1,
                       required=False)
     args.add_argument("--gradient_checkpointing",
                       dest="gradient_checkpointing",
@@ -139,59 +149,10 @@ def parse_args() -> argparse.Namespace:
                       dest="tie_qd_tokens_embeddings",
                       action="store_false",
                       required=False)
-    args.add_argument("--output_folder",
-                      dest="output_folder",
-                      type=str,
-                      required=True)
-    args.add_argument("--loss_logging_filename",
-                      dest="loss_logging_filename",
-                      type=str,
-                      default=None,
-                      required=False)
-    args.add_argument("--query_model_folder",
-                      dest="query_model_folder",
-                      type=str,
-                      default=None,
-                      required=False)
-    args.add_argument("--document_model_folder",
-                      dest="document_model_folder",
-                      type=str,
-                      default=None,
-                      required=False)
-    args.add_argument("--train_model_folder",
-                      dest="train_model_folder",
-                      type=str,
-                      default=None,
-                      required=False)
-    args.add_argument("--r_corpus_index_folder",
-                      dest="r_corpus_index_folder",
-                      type=str,
-                      default=None,
-                      required=False)
-    args.add_argument("--s_corpus_index_folder",
-                      dest="s_corpus_index_folder",
-                      type=str,
-                      default=None,
-                      required=False)
-    args.add_argument("--r_queries_index_folder",
-                      dest="r_queries_index_folder",
-                      type=str,
-                      default=None,
-                      required=False)
-    args.add_argument("--s_queries_index_folder",
-                      dest="s_queries_index_folder",
-                      type=str,
-                      default=None,
-                      required=False)
-    args.add_argument("--rs_queries_index_folder",
-                      dest="rs_queries_index_folder",
-                      type=str,
-                      default=None,
-                      required=False)
-    args.add_argument("--sr_queries_index_folder",
-                      dest="sr_queries_index_folder",
-                      type=str,
-                      default=None,
+    args.add_argument("--finetune_alpha",
+                      dest="finetune_alpha",
+                      type=float,
+                      default=0.0,
                       required=False)
     args.add_argument("--num_positives",
                       dest="num_positives",
@@ -202,31 +163,6 @@ def parse_args() -> argparse.Namespace:
                       dest="num_negatives",
                       type=int,
                       default=1,
-                      required=False)
-    args.add_argument("--num_warmup_epochs",
-                      dest="num_warmup_epochs",
-                      type=int,
-                      default=4,
-                      required=False)
-    args.add_argument("--every_k_epochs",
-                      dest="every_k_epochs",
-                      type=int,
-                      default=4,
-                      required=False)
-    args.add_argument("--min_rank_for_hardnegatives",
-                      dest="min_rank_for_hardnegatives",
-                      type=int,
-                      default=50,
-                      required=False)
-    args.add_argument("--max_rank_for_hardnegatives",
-                      dest="max_rank_for_hardnegatives",
-                      type=int,
-                      default=100,
-                      required=False)
-    args.add_argument("--num_retain_hardnegatives",
-                      dest="num_retain_hardnegatives",
-                      type=int,
-                      default=100,
                       required=False)
 
     return args.parse_args()
@@ -244,36 +180,28 @@ def main():
     # Log the main train parameters.
     # ------------------------------------------------------------------------------------------------------------------
     print(f"\n"
-          f"R corpus filename:      {args.r_corpus_filename}.", flush=False)
-    print(f"S corpus filename:      {args.s_corpus_filename}.", flush=False)
-    print(f"R train data filename:  {args.r_train_filename}.", flush=False)
-    print(f"RS train data filename: {args.rs_train_filename}.", flush=False)
-    print(f"SR train data filename: {args.sr_train_filename}.", flush=False)
-    print(f"Base model:             {args.base_model}.", flush=False)
-    print(f"Finetune alpha:         {args.finetune_alpha}.", flush=False)
-    print(f"Auxiliary alpha:        {args.auxiliary_alpha}.", flush=False)
-    print(f"Learning rate:          {args.learning_rate}.", flush=False)
-    print(f"Num train epochs:       {args.num_train_epochs}.", flush=False)
-    print(f"Batch size:             {args.batch_size}.", flush=False)
-    print(f"Max number of tokens:   {args.max_num_tokens}.", flush=False)
-    print(f"Gradient acc. steps:    {args.gradient_accumulation_steps}.", flush=False)
-    print(f"Gradient checkpoint:    {args.gradient_checkpointing}.", flush=False)
-    print(f"Loss log filename:      {args.loss_logging_filename}.", flush=False)
-    print(f"Output folder:          {args.output_folder}.", flush=False)
+          f"Base model:             {args.base_model}.", flush=False)
     print(f"Query output folder:    {args.query_model_folder}.", flush=False)
     print(f"Doc output folder:      {args.document_model_folder}.", flush=False)
     print(f"Train output folder:    {args.train_model_folder}.", flush=False)
-    print(f"R corpus index folder:  {args.r_corpus_index_folder}.", flush=False)
-    print(f"S corpus index folder:  {args.s_corpus_index_folder}.", flush=False)
-    print(f"R query index folder:   {args.r_queries_index_folder}.", flush=False)
-    print(f"S query index folder:   {args.s_queries_index_folder}.", flush=False)
-    print(f"RS query index folder:  {args.rs_queries_index_folder}.", flush=False)
-    print(f"SR query index folder:  {args.sr_queries_index_folder}.", flush=False)
-    print(f"Num warmup epochs:      {args.num_warmup_epochs}.", flush=False)
-    print(f"Every k epochs:         {args.every_k_epochs}.", flush=False)
-    print(f"Max rank for exclude:   {args.min_rank_for_hardnegatives}.", flush=False)
-    print(f"Min rank for HN:        {args.min_rank_for_hardnegatives}.", flush=False)
-    print(f"Max number of HN:       {args.num_retain_hardnegatives}.", flush=False)
+    print(f"Loss logging filename:  {args.loss_logging_filename}.", flush=False)
+    print("--------------------------------------------------", flush=False)
+    print(f"P corpus filename:      {args.p_corpus_filename}.", flush=False)
+    print(f"R corpus filename:      {args.r_corpus_filename}.", flush=False)
+    print(f"P queries filename:     {args.p_queries_filename}.", flush=False)
+    print(f"R queries filename:     {args.r_queries_filename}.", flush=False)
+    print(f"P train data filename:  {args.p_train_filename}.", flush=False)
+    print(f"R train data filename:  {args.r_train_filename}.", flush=False)
+    print("--------------------------------------------------", flush=False)
+    print(f"Num train epochs:       {args.num_train_epochs}.", flush=False)
+    print(f"Learning rate:          {args.learning_rate}.", flush=False)
+    print(f"Batch size:             {args.batch_size}.", flush=False)
+    print(f"Max number of tokens:   {args.max_num_tokens}.", flush=False)
+    print(f"Gradient acc. steps:    {args.gradient_accumulation_steps}.", flush=False)
+    print(f"Gradient checkpointing: {args.gradient_checkpointing}.", flush=False)
+    print(f"Fine-tune alpha:        {args.finetune_alpha}.", flush=False)
+    print(f"Num positives:          {args.num_positives}.", flush=False)
+    print(f"Num negatives:          {args.num_negatives}.", flush=False)
 
     if args.clone_qd_models:
         print(f"* Clone query and document models.", flush=False)
@@ -288,21 +216,19 @@ def main():
     if args.tie_qd_tokens_embeddings:
         print(f"* Tie query and document tokens embedding.", flush=False)
 
+    print(f"\n", flush=True)
+
     # ------------------------------------------------------------------------------------------------------------------
     # Ensure that the input files do exist.
     # ------------------------------------------------------------------------------------------------------------------
+    if not os.path.exists(args.p_corpus_filename):
+        raise ValueError(f"Unable to find the input P corpus file: found {args.p_corpus_filename}.")
     if not os.path.exists(args.r_corpus_filename):
         raise ValueError(f"Unable to find the input R corpus file: found {args.r_corpus_filename}.")
-    if not os.path.exists(args.s_corpus_filename):
-        raise ValueError(f"Unable to find the input S corpus file: found {args.s_corpus_filename}.")
+    if not os.path.exists(args.p_train_filename):
+        raise ValueError(f"Unable to find the input P train file: found {args.p_train_filename}.")
     if not os.path.exists(args.r_train_filename):
         raise ValueError(f"Unable to find the input R train file: found {args.r_train_filename}.")
-    if not os.path.exists(args.s_train_filename):
-        raise ValueError(f"Unable to find the input S train file: found {args.s_train_filename}.")
-    if not os.path.exists(args.rs_train_filename):
-        raise ValueError(f"Unable to find the input RS train file: found {args.rs_train_filename}.")
-    if not os.path.exists(args.sr_train_filename):
-        raise ValueError(f"Unable to find the input SR train file: found {args.sr_train_filename}.")
     if not os.path.exists(args.base_model):
         raise ValueError(f"Unable to find the base model data: found {args.base_model}.")
 
@@ -318,19 +244,6 @@ def main():
     if args.query_model_folder is None and args.document_model_folder is None and args.train_model_folder is None:
         raise ValueError(f"None of the output folders specified: the training would be pointless.")
 
-    if args.r_corpus_index_folder is None or not os.path.exists(args.r_corpus_index_folder):
-        raise ValueError(f"Unable to find the index folder for the R corpus: found {args.r_corpus_index_folder}.")
-    if args.s_corpus_index_folder is None or not os.path.exists(args.s_corpus_index_folder):
-        raise ValueError(f"Unable to find the index folder for the S corpus: found {args.s_corpus_index_folder}.")
-    if args.r_queries_index_folder is None or not os.path.exists(args.r_queries_index_folder):
-        raise ValueError(f"Unable to find the index folder for the R queries: found {args.r_queries_index_folder}.")
-    if args.s_queries_index_folder is None or not os.path.exists(args.s_queries_index_folder):
-        raise ValueError(f"Unable to find the index folder for the S queries: found {args.s_queries_index_folder}.")
-    if args.rs_queries_index_folder is None or not os.path.exists(args.rs_queries_index_folder):
-        raise ValueError(f"Unable to find the index folder for the RS queries: found {args.rs_queries_index_folder}.")
-    if args.sr_queries_index_folder is None or not os.path.exists(args.sr_queries_index_folder):
-        raise ValueError(f"Unable to find the index folder for the SR queries: found {args.sr_queries_index_folder}.")
-
     # ------------------------------------------------------------------------------------------------------------------
     # Load the tokenizer and the model.
     # ------------------------------------------------------------------------------------------------------------------
@@ -341,7 +254,7 @@ def main():
     model = modeling.TrainDoubleBiEncoderModel.from_pretrained(args.base_model, device_map=args.device)
     assert isinstance(model, modeling.TrainDoubleBiEncoderModel)
 
-    print(f"Loaded the model in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
+    print(f"Model loaded in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
     del st
 
     print("", flush=True)
@@ -368,61 +281,98 @@ def main():
         model.tie_qd_tokens_embeddings()
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Read the training corpora from disk.
+    # Read the product search corpus data from disk.
     # ------------------------------------------------------------------------------------------------------------------
-    r_corpus_data = {}
-    s_corpus_data = {}
+    st = time.time_ns()
+    with open(args.p_corpus_filename, "rt", encoding="utf-8") as fi:
+        # p_corpus_data = {v["id"]: {"text": v["text"], "aspects": v["aspects"]} for v in map(json.loads, fi)}
+        p_corpus_data = {v["id"]: {
+            "text": f"{v['title']}\n{v['description']}\n{v['bullet_point']}".strip(),
+            "aspects": [v for r, v in zip(args.retain_aspects, v["aspects"]) if r]
+        } for v in map(json.loads, fi)}
+    del fi
 
-    for fn, data, d_cast, label in zip([args.r_corpus_filename, args.s_corpus_filename],
-                                       [r_corpus_data, s_corpus_data],
-                                       [False, False], ["R", "S"]):
-        with open(fn, "rt", encoding="utf-8") as fi:
-            st = time.time_ns()
-            data.update({int(v["id"]) if d_cast else str(v["id"]): \
-                             {"text": v["text"], "aspects": v["aspects"]}
-                         for v in map(json.loads, fi)})
-
-            print(f"Loaded the {label} corpus in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
-            del st
-        del fi
-    try:
-        del fn, data, d_cast, label
-    except UnboundLocalError:
-        pass
-
-    print("", flush=True)
+    print(f"P corpus loaded in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
+    del st
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Read the training data from disk.
+    # Read the review search corpus data from disk.
     # ------------------------------------------------------------------------------------------------------------------
-    r_train_data = {}
-    s_train_data = {}
-    rs_train_data = {}
-    sr_train_data = {}
+    st = time.time_ns()
+    with open(args.r_corpus_filename, "rt", encoding="utf-8") as fi:
+        # r_corpus_data = {v["id"]: {"text": v["text"], "aspects": v["aspects"]} for v in map(json.loads, fi)}
+        r_corpus_data = {v["id"]: {
+            "text": f"{v['title']}\n{v['text']}".strip(),
+            "aspects": [v for r, v in zip(args.retain_aspects, v["aspects"]) if r]
+        } for v in map(json.loads, fi)}
+    del fi
 
-    for fn, data, q_cast, d_cast, label in zip(
-            [args.r_train_filename, args.s_train_filename, args.rs_train_filename, args.sr_train_filename],
-            [r_train_data, s_train_data, rs_train_data, sr_train_data],
-            [True, False, False, False], [False, False, False, False], ["r", "s", "rs", "sr"]):
-        with open(fn, "rt", encoding="utf-8") as fi:
-            st = time.time_ns()
-            data.update({int(v["query_id"]) if q_cast else str(v["query_id"]): {
-                "task": v["task"],
-                "query_text": v["query_text"],
-                "query_aspects": v["query_aspects"],
-                "exclude_id": [int(k) if d_cast else str(k) for k in v["exclude_id"]],
-                "p_rank": [(int(k) if d_cast else str(k), r1, r2) for k, r1, r2 in v["p_rank"]],
-                "n_rank": [(int(k) if d_cast else str(k), r1, r2) for k, r1, r2 in v["n_rank"]],
-                "hn_rank": [(int(k) if d_cast else str(k), r1, r2) for k, r1, r2 in v["hn_rank"]]
-            } for v in map(json.loads, fi)})
+    print(f"R corpus loaded in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
+    del st
 
-            print(f"Loaded the {label} training data in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
-            del st
-        del fi
-    try:
-        del fn, data, q_cast, d_cast
-    except UnboundLocalError:
-        pass
+    # ------------------------------------------------------------------------------------------------------------------
+    # Read the product search queries data from disk.
+    # ------------------------------------------------------------------------------------------------------------------
+    st = time.time_ns()
+    with open(args.p_queries_filename, "rt", encoding="utf-8") as fi:
+        # p_queries_data = {int(v["id"]): {"text": v["text"], "aspects": v["aspects"]} for v in map(json.loads, fi)}
+        p_queries_data = {int(v["id"]): {
+            "text": v["text"].strip(),
+            "aspects": [v for r, v in zip(args.retain_aspects, v["aspects"]) if r]
+        } for v in map(json.loads, fi)}
+    del fi
+
+    print(f"P queries loaded in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
+    del st
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Read the review search queries data from disk.
+    # ------------------------------------------------------------------------------------------------------------------
+    st = time.time_ns()
+    with open(args.r_queries_filename, "rt", encoding="utf-8") as fi:
+        # r_queries_data = {v["id"]: {"text": v["text"], "aspects": v["aspects"]} for v in map(json.loads, fi)}
+        r_queries_data = {v["id"]: {
+            "text": v["text"].strip(),
+            "aspects": [v for r, v in zip(args.retain_aspects, v["aspects"]) if r]
+        } for v in map(json.loads, fi)}
+    del fi
+
+    print(f"R queries loaded in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
+    del st
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Read the product search train data from disk.
+    # ------------------------------------------------------------------------------------------------------------------
+    st = time.time_ns()
+    with open(args.p_train_filename, "rt", encoding="utf-8") as fi:
+        p_train_data = {int(v["query_id"]): {
+            "task": "p",
+            "exclude_id": [k for k in v["exclude_id"]],
+            "p_rank": [(k, r1, r2) for k, r1, r2 in v["p_rank"]],
+            "n_rank": [(k, r1, r2) for k, r1, r2 in v["n_rank"]],
+            "hn_rank": [(k, r1, r2) for k, r1, r2 in v["hn_rank"]]
+        } for v in map(json.loads, fi)}
+    del fi
+
+    print(f"P train data loaded in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
+    del st
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Read the review search train data from disk.
+    # ------------------------------------------------------------------------------------------------------------------
+    st = time.time_ns()
+    with open(args.r_train_filename, "rt", encoding="utf-8") as fi:
+        r_train_data = {int(v["query_id"]): {
+            "task": "r",
+            "exclude_id": [k for k in v["exclude_id"]],
+            "p_rank": [(k, r1, r2) for k, r1, r2 in v["p_rank"]],
+            "n_rank": [(k, r1, r2) for k, r1, r2 in v["n_rank"]],
+            "hn_rank": [(k, r1, r2) for k, r1, r2 in v["hn_rank"]]
+        } for v in map(json.loads, fi)}
+    del fi
+
+    print(f"R train data loaded in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
+    del st
 
     print("", flush=True)
 
@@ -430,21 +380,16 @@ def main():
     # Instantiate the training dataset.
     # ------------------------------------------------------------------------------------------------------------------
     st = time.time_ns()
-    train_dataset = modeling.JointFinetuningDataset(
+    train_dataset = modeling.FinetuningDataset(
+        p_corpus_data=p_corpus_data,
         r_corpus_data=r_corpus_data,
-        s_corpus_data=s_corpus_data,
+        p_queries_data=p_queries_data,
+        r_queries_data=r_queries_data,
+        p_train_data=p_train_data,
         r_train_data=r_train_data,
-        s_train_data=s_train_data,
-        rs_train_data=rs_train_data,
-        sr_train_data=sr_train_data,
         batch_size=args.batch_size,
-        num_warmup_epochs=args.num_warmup_epochs,
-        every_k_epochs=args.every_k_epochs,
-        min_rank_for_hardnegatives=args.min_rank_for_hardnegatives,
-        max_rank_for_hardnegatives=args.max_rank_for_hardnegatives,
         num_positives=args.num_positives,
-        num_negatives=args.num_negatives,
-        num_retain_hardnegatives=args.num_retain_hardnegatives
+        num_negatives=args.num_negatives
     )
     train_dataset = train_dataset.shuffle()
 
@@ -452,33 +397,10 @@ def main():
     del st
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Define the callback responsible to reindex the entire catalogue and retrieve new hard negatives.
-    # ------------------------------------------------------------------------------------------------------------------
-    st = time.time_ns()
-
-    # noinspection PyTypeChecker
-    index_callback = modeling.JointIndexCorpusCallback(
-        dataset=train_dataset,
-        tokenizer=tk,
-        model=model,
-        model_folder=args.output_folder,
-        r_corpus_index_folder=args.r_corpus_index_folder,
-        s_corpus_index_folder=args.s_corpus_index_folder,
-        r_query_index_folder=args.r_queries_index_folder,
-        s_query_index_folder=args.s_queries_index_folder,
-        rs_query_index_folder=args.rs_queries_index_folder,
-        sr_query_index_folder=args.sr_queries_index_folder,
-        max_num_tokens=args.max_num_tokens
-    )
-
-    print(f"Loaded the index corpus callback in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
-    del st
-
-    # ------------------------------------------------------------------------------------------------------------------
     # Prepare the collator.
     # ------------------------------------------------------------------------------------------------------------------
     st = time.time_ns()
-    collator = modeling.BiEncoderFinetuningCollator(tk, max_num_tokens=args.max_num_tokens)
+    collator = modeling.FinetuningCollator(tk, max_num_tokens=args.max_num_tokens)
 
     print(f"Loaded the collator in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
     del st
@@ -506,9 +428,7 @@ def main():
         max_grad_norm=1.0,
 
         # Logging and monitoring training.
-        logging_strategy="steps",
-        logging_steps=1000,
-        include_num_input_tokens_seen="no",
+        logging_strategy="no",
 
         # Checkpointing and saving.
         save_strategy="no",
@@ -519,14 +439,13 @@ def main():
     # Define the trainer.
     # ------------------------------------------------------------------------------------------------------------------
     st = time.time_ns()
-    trainer = modeling.MadralFinetuningTrainer(
+    trainer = modeling.FinetuningTrainer(
         model=model,
         args=train_args,
         train_dataset=train_dataset,
+        callbacks=[train_dataset],
         data_collator=collator,
-        callbacks=[index_callback, train_dataset],
         finetune_alpha=args.finetune_alpha,
-        auxiliary_alpha=args.auxiliary_alpha,
         logging_filename=args.loss_logging_filename
     )
 
@@ -544,8 +463,8 @@ def main():
     # ------------------------------------------------------------------------------------------------------------------
     # Save the resulting model to disk.
     # ------------------------------------------------------------------------------------------------------------------
-    print("\n** Finished training! **\n", flush=True)
     model.untie_all()
+    print("\n** Finished training! **\n", flush=True)
 
     if args.query_model_folder is not None:
         tk.save_pretrained(args.query_model_folder)

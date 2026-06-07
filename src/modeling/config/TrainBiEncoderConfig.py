@@ -1,8 +1,8 @@
 import transformers
 
 
-class TrainDoubleBiEncoderConfig(transformers.PretrainedConfig):
-    model_type = "TrainDoubleBiEncoderModel"
+class TrainBiEncoderConfig(transformers.PretrainedConfig):
+    model_type = "TrainBiEncoderModel"
 
     def __init__(self, config=None, **kwargs):
         q_config_data = {}
@@ -31,13 +31,13 @@ class TrainDoubleBiEncoderConfig(transformers.PretrainedConfig):
                 else:
                     other_data[key1] = value1
 
-        super(TrainDoubleBiEncoderConfig, self).__init__(**other_data)
+        super(TrainBiEncoderConfig, self).__init__(**other_data)
         self.q_config = transformers.PretrainedConfig(**q_config_data)
         self.d_config = transformers.PretrainedConfig(**d_config_data)
 
     @staticmethod
     def build_from_configs(q_config, d_config):
-        result = TrainDoubleBiEncoderConfig()
+        result = TrainBiEncoderConfig()
         result.q_config = q_config
         result.d_config = d_config
         return result
