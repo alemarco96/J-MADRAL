@@ -37,6 +37,10 @@ def parse_args() -> argparse.Namespace:
                       type=str,
                       default=None,
                       required=False)
+    args.add_argument("--task",
+                      dest="task",
+                      type=str,
+                      required=True)
     args.add_argument("--p_corpus_filename",
                       dest="p_corpus_filename",
                       type=str,
@@ -177,6 +181,19 @@ def main():
     args = parse_args()
 
     # ------------------------------------------------------------------------------------------------------------------
+    # Initialize the model-specific parameters.
+    # ------------------------------------------------------------------------------------------------------------------
+    args.task = args.task.strip().lower()
+    if args.task == "product":
+        args.retain_aspects = [True, True, True, True, True, True, True, True, False, False]
+    elif args.task == "review":
+        args.retain_aspects = [False, True, False, False, False, False, False, False, True, True]
+    elif args.task == "joint":
+        args.retain_aspects = [True, True, True, True, True, True, True, True, True, True]
+    else:
+        raise ValueError(f"Invalid args.task: found {args.task}.")
+
+    # ------------------------------------------------------------------------------------------------------------------
     # Log the main train parameters.
     # ------------------------------------------------------------------------------------------------------------------
     print(f"\n"
@@ -186,6 +203,7 @@ def main():
     print(f"Train output folder:    {args.train_model_folder}.", flush=False)
     print(f"Loss logging filename:  {args.loss_logging_filename}.", flush=False)
     print("--------------------------------------------------", flush=False)
+    print(f"Task:                   {args.task}.", flush=False)
     print(f"P corpus filename:      {args.p_corpus_filename}.", flush=False)
     print(f"R corpus filename:      {args.r_corpus_filename}.", flush=False)
     print(f"P queries filename:     {args.p_queries_filename}.", flush=False)
@@ -225,6 +243,10 @@ def main():
         raise ValueError(f"Unable to find the input P corpus file: found {args.p_corpus_filename}.")
     if not os.path.exists(args.r_corpus_filename):
         raise ValueError(f"Unable to find the input R corpus file: found {args.r_corpus_filename}.")
+    if not os.path.exists(args.p_queries_filename):
+        raise ValueError(f"Unable to find the input P queries file: found {args.p_queries_filename}.")
+    if not os.path.exists(args.r_queries_filename):
+        raise ValueError(f"Unable to find the input R queries file: found {args.r_queries_filename}.")
     if not os.path.exists(args.p_train_filename):
         raise ValueError(f"Unable to find the input P train file: found {args.p_train_filename}.")
     if not os.path.exists(args.r_train_filename):
@@ -251,8 +273,8 @@ def main():
 
     tk = transformers.AutoTokenizer.from_pretrained(args.base_model)
     assert isinstance(tk, transformers.PreTrainedTokenizerBase)
-    model = modeling.TrainDoubleBiEncoderModel.from_pretrained(args.base_model, device_map=args.device)
-    assert isinstance(model, modeling.TrainDoubleBiEncoderModel)
+    model = modeling.TrainBiEncoderModel.from_pretrained(args.base_model, device_map=args.device)
+    assert isinstance(model, modeling.TrainBiEncoderModel)
 
     print(f"Model loaded in {(time.time_ns() - st) / NS_IN_S:.3f} s.", flush=True)
     del st
@@ -408,6 +430,8 @@ def main():
     # ------------------------------------------------------------------------------------------------------------------
     # Prepare the training arguments.
     # ------------------------------------------------------------------------------------------------------------------
+    st = time.time_ns()
+
     train_args = transformers.TrainingArguments(
         # Output paths.
         output_dir=args.output_folder,
@@ -438,7 +462,6 @@ def main():
     # ------------------------------------------------------------------------------------------------------------------
     # Define the trainer.
     # ------------------------------------------------------------------------------------------------------------------
-    st = time.time_ns()
     trainer = modeling.FinetuningTrainer(
         model=model,
         args=train_args,

@@ -30,9 +30,6 @@ class FinetuningDataset(datasets.Dataset, transformers.TrainerCallback):
         self.p_queries_data = p_queries_data
         self.r_queries_data = r_queries_data
 
-        self.p_exclude_data = {k: set(v["exclude_id"]) for k, v in p_train_data.items()}
-        self.r_exclude_data = {k: set(v["exclude_id"]) for k, v in r_train_data.items()}
-
         self.p_train_data = {k1: {
             "p_id": [(k, r1, r2) for k, r1, r2 in v1["p_rank"]],
             "n_id": [(k, r1, r2) for k, r1, r2 in v1["n_rank"]],
@@ -58,9 +55,9 @@ class FinetuningDataset(datasets.Dataset, transformers.TrainerCallback):
         # Interleave P and R keys (query_id) in blocks equal to the batch size.
         train_keys = []
 
-        len_pr = max(len(self.r_keys), len(self.s_keys))
+        len_pr = max(len(self.p_keys), len(self.r_keys))
         for idx in range(0, len_pr, self.batch_size):
-            for keys, task in zip((self.r_keys, self.s_keys), ("p", "r")):
+            for keys, task in zip((self.p_keys, self.r_keys), ("p", "r")):
                 data = keys[idx: idx + self.batch_size]
                 if len(data) == self.batch_size:
                     train_keys.append([(task, k) for k in data])

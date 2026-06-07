@@ -26,6 +26,10 @@ def parse_args() -> argparse.Namespace:
                       type=str,
                       default=None,
                       required=False)
+    args.add_argument("--task",
+                      dest="task",
+                      type=str,
+                      required=True)
     args.add_argument("--p_corpus_filename",
                       dest="p_corpus_filename",
                       type=str,
@@ -121,7 +125,6 @@ def main():
     else:
         raise ValueError(f"Invalid args.task: found {args.task}.")
 
-
     # ------------------------------------------------------------------------------------------------------------------
     # Log the main train parameters.
     # ------------------------------------------------------------------------------------------------------------------
@@ -130,6 +133,7 @@ def main():
     print(f"Output folder:          {args.output_folder}.", flush=False)
     print(f"Loss logging filename:  {args.loss_logging_filename}.", flush=False)
     print("--------------------------------------------------", flush=False)
+    print(f"Task:                   {args.task}.", flush=False)
     print(f"P corpus filename:      {args.p_corpus_filename}.", flush=False)
     print(f"R corpus filename:      {args.r_corpus_filename}.", flush=False)
     print(f"P queries filename:     {args.p_queries_filename}.", flush=False)
@@ -145,13 +149,24 @@ def main():
     print(f"\n", flush=True)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Ensure that the output folder do exist. If needed, create such folder on disk.
+    # Ensure that the input files do exist.
     # ------------------------------------------------------------------------------------------------------------------
-    if not os.path.exists(args.output_folder):
-        os.mkdir(args.output_folder)
+    if not os.path.exists(args.p_corpus_filename):
+        raise ValueError(f"Unable to find the input P corpus file: found {args.p_corpus_filename}.")
+    if not os.path.exists(args.r_corpus_filename):
+        raise ValueError(f"Unable to find the input R corpus file: found {args.r_corpus_filename}.")
+    if not os.path.exists(args.p_queries_filename):
+        raise ValueError(f"Unable to find the input P queries file: found {args.p_queries_filename}.")
+    if not os.path.exists(args.r_queries_filename):
+        raise ValueError(f"Unable to find the input R queries file: found {args.r_queries_filename}.")
+    if not os.path.exists(args.base_model):
+        raise ValueError(f"Unable to find the base model data: found {args.base_model}.")
 
-    if not os.path.exists(args.output_folder):
-        raise ValueError(f"Unable to create the output folder for the model: found {args.output_folder}.")
+    # ------------------------------------------------------------------------------------------------------------------
+    # Ensure that the output folders do exist.
+    # ------------------------------------------------------------------------------------------------------------------
+    if args.output_folder is not None and not os.path.exists(args.output_folder):
+        raise ValueError(f"Unable to find the output folder for the model: found {args.output_folder}.")
 
     # ------------------------------------------------------------------------------------------------------------------
     # Load the tokenizer and the model.
