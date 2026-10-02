@@ -1,0 +1,2 @@
+from .BiEncoderConfig import BiEncoderConfig
+from .TrainBiEncoderConfig import TrainBiEncoderConfig
